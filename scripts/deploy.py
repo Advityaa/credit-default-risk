@@ -37,7 +37,8 @@ sha = os.environ.get("GITHUB_SHA", "local")[:7]
 try:
     api.create_repo(space_id, repo_type="space", space_sdk="gradio", exist_ok=True)
 except Exception as exc:
-    fail(f"Could not create {space_id}: {type(exc).__name__}: {getattr(getattr(exc, "response", None), "text", "")[:500]} | {str(exc)[-400:]}")
+    body = getattr(getattr(exc, "response", None), "text", "")[:500]
+    fail(f"Could not create {space_id}: {type(exc).__name__}: {body}")
 
 # Enforce the free "CPU basic" tier. A Space created in the web UI may default to other
 # hardware (e.g. ZeroGPU), which refuses to start CPU-only apps, and free accounts are
