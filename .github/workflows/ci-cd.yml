@@ -60,4 +60,4 @@ jobs:
       - name: Upload to Space
         run: python scripts/deploy.py
       - name: Post-deployment smoke test
-        run: python scripts/smoke_test.py
+        run: python scripts/smoke_check.py
