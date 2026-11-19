@@ -1,4 +1,11 @@
 """Gradio front end for the credit-default model, served on Hugging Face Spaces."""
+try:  # ZeroGPU runtime provides `spaces`; elsewhere fall back to a no-op decorator
+    import spaces
+    gpu = spaces.GPU(duration=10)
+except ImportError:  # pragma: no cover
+    def gpu(fn):
+        return fn
+
 import json
 from pathlib import Path
 
@@ -29,6 +36,7 @@ def predict_proba(record: dict) -> float:
     return float(MODEL.predict_proba(X)[0, 1])
 
 
+@gpu  # ZeroGPU requires at least one @spaces.GPU function; the MLP itself runs fine on CPU
 def score(limit_bal, sex, education, marriage, age, *rest):
     pays, bills, pamts = rest[:6], rest[6:12], rest[12:18]
     rec = {"LIMIT_BAL": limit_bal, "SEX": SEX[sex], "EDUCATION": EDUCATION[education],

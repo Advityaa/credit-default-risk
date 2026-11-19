@@ -40,18 +40,14 @@ except Exception as exc:
     body = getattr(getattr(exc, "response", None), "text", "")[:500]
     fail(f"Could not create {space_id}: {type(exc).__name__}: {body}")
 
-# Enforce the free "CPU basic" tier. A Space created in the web UI may default to other
-# hardware (e.g. ZeroGPU), which refuses to start CPU-only apps, and free accounts are
-# not allowed to downgrade it afterwards.
+# Cost guard: only deploy to hardware that is free for this account. CPU basic is free;
+# ZeroGPU is free within the account's daily GPU quota and needs an @spaces.GPU function
+# (present in app.py). Anything else would be billed, so refuse to deploy.
+FREE_HARDWARE = {"cpu-basic", "zero-a10g"}
 hw = api.get_space_runtime(space_id).requested_hardware
-if hw != "cpu-basic":
-    print(f"Space hardware is {hw}; requesting cpu-basic (free tier)")
-    try:
-        api.request_space_hardware(space_id, "cpu-basic")
-    except Exception:
-        fail(f"{space_id} runs on {hw} and the Hub will not downgrade it to cpu-basic on a free "
-             "account. Delete the Space (Settings > Delete this Space) and re-run this workflow; "
-             "it will be recreated on cpu-basic.")
+print(f"Space hardware: {hw}")
+if hw not in FREE_HARDWARE:
+    fail(f"{space_id} is on paid hardware ({hw}); switch it to a free tier before deploying.")
 
 try:
     info = api.upload_folder(
