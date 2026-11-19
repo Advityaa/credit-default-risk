@@ -1,0 +1,4 @@
+-r requirements.txt
+gradio==6.29.1
+gradio_client
+pytest==8.3.4
