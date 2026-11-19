@@ -42,10 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://huggingface.co/spaces/${{ vars.HF_SPACE_ID }}
+      url: https://huggingface.co/spaces/${{ vars.HF_SPACE_ID || 'advityaaa/credit-default-risk' }}
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_SPACE_ID: ${{ vars.HF_SPACE_ID }}
+      HF_SPACE_ID: ${{ vars.HF_SPACE_ID || 'advityaaa/credit-default-risk' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
