@@ -35,8 +35,7 @@ if role == "read":
 
 sha = os.environ.get("GITHUB_SHA", "local")[:7]
 try:
-    api.create_repo(space_id, repo_type="space", space_sdk="gradio",
-                    space_hardware="cpu-basic", exist_ok=True)
+    api.create_repo(space_id, repo_type="space", space_sdk="gradio", exist_ok=True)
 except Exception as exc:
     fail(f"Could not create {space_id}: {type(exc).__name__}: {str(exc)[:300]}")
 
