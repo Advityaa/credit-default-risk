@@ -35,13 +35,25 @@ if role == "read":
 
 sha = os.environ.get("GITHUB_SHA", "local")[:7]
 try:
-    api.create_repo(space_id, repo_type="space", space_sdk="gradio", exist_ok=True)
-    # Enforce the free "CPU basic" tier: a Space created in the web UI may default to
-    # other hardware (e.g. ZeroGPU), which costs quota and refuses to start CPU-only apps.
-    hw = api.get_space_runtime(space_id).requested_hardware
-    if hw != "cpu-basic":
-        print(f"Space hardware is {hw}; switching to cpu-basic (free tier)")
+    api.create_repo(space_id, repo_type="space", space_sdk="gradio",
+                    space_hardware="cpu-basic", exist_ok=True)
+except Exception as exc:
+    fail(f"Could not create {space_id}: {type(exc).__name__}: {str(exc)[:300]}")
+
+# Enforce the free "CPU basic" tier. A Space created in the web UI may default to other
+# hardware (e.g. ZeroGPU), which refuses to start CPU-only apps, and free accounts are
+# not allowed to downgrade it afterwards.
+hw = api.get_space_runtime(space_id).requested_hardware
+if hw != "cpu-basic":
+    print(f"Space hardware is {hw}; requesting cpu-basic (free tier)")
+    try:
         api.request_space_hardware(space_id, "cpu-basic")
+    except Exception:
+        fail(f"{space_id} runs on {hw} and the Hub will not downgrade it to cpu-basic on a free "
+             "account. Delete the Space (Settings > Delete this Space) and re-run this workflow; "
+             "it will be recreated on cpu-basic.")
+
+try:
     info = api.upload_folder(
         repo_id=space_id, repo_type="space", folder_path=".",
         allow_patterns=["app.py", "features.py", "requirements.txt", "README.md", "model/*"],
